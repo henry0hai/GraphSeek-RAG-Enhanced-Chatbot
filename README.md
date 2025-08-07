@@ -134,4 +134,4 @@ Share your thoughts on [Reddit](https://www.reddit.com/user/akhilpanja/)!
 **Enjoy building knowledge graphs, maintaining conversation memory, and harnessing powerful local LLM inference—all from your own machine.**
 
 
->> **Note:** Inherit from on the original [DeepSeek-RAG-Chatbot](https://github.com/SaiAkhil066/DeepSeek-RAG-Chatbot.git)
+> **Note:** Inherit from on the original [DeepSeek-RAG-Chatbot](https://github.com/SaiAkhil066/DeepSeek-RAG-Chatbot.git)
