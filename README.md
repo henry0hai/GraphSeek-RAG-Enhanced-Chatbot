@@ -53,7 +53,7 @@ utils/
 ### **1 Python/venv Installation**
 
 ```bash
-git clone <your-repo-url>
+git clone git@github.com:henry0hai/GraphSeek-RAG-Enhanced-Chatbot.git
 cd GraphSeek-RAG-Enhanced-Chatbot
 
 python -m venv venv
