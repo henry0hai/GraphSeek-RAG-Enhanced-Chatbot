@@ -6,6 +6,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.retrievers import BM25Retriever
 from langchain.retrievers import EnsembleRetriever
 from utils.build_graph import build_knowledge_graph
+from utils.adaptive_chunking import AdaptiveChunker
 from rank_bm25 import BM25Okapi
 import os
 import re
@@ -44,13 +45,53 @@ def process_documents(uploaded_files, reranker, embedding_model, base_url):
             st.error(f"Error processing {file.name}: {str(e)}")
             return
 
-    # Text splitting (tuned for more granular retrieval)
-    text_splitter = CharacterTextSplitter(
-        chunk_size=500,  # smaller chunk size for finer granularity
-        chunk_overlap=100,  # less overlap
-        separator="\n",
+    # 🚀 Advanced Adaptive Text Splitting
+    # Initialize adaptive chunker for intelligent document processing
+    adaptive_chunker = AdaptiveChunker()
+    
+    # Let user choose chunking strategy
+    st.write("⚙️ **Chunking Strategy Selection**")
+    chunking_strategy = st.selectbox(
+        "Choose optimal chunking strategy for your use case:",
+        options=["balanced", "detailed", "contextual", "count_optimized"],
+        index=0,
+        help="Different strategies optimize for different query types"
     )
-    texts = text_splitter.split_documents(documents)
+    
+    # Get optimal splitter based on document characteristics and user preference
+    text_splitter = adaptive_chunker.get_optimal_chunker(documents, chunking_strategy)
+    
+    # Split documents with quality analysis
+    try:
+        texts = text_splitter.split_documents(documents)
+        
+        # Analyze chunk quality
+        quality_analysis = adaptive_chunker.analyze_chunk_quality(texts)
+        
+        # Display analysis results
+        if quality_analysis:
+            st.write("📊 **Chunk Quality Analysis**:")
+            st.write(f"   - Total chunks: {quality_analysis['total_chunks']}")
+            st.write(f"   - Average length: {quality_analysis['avg_length']:.0f} characters")
+            st.write(f"   - Size range: {quality_analysis['min_length']}-{quality_analysis['max_length']} chars")
+            st.write(f"   - Quality score: {quality_analysis['quality_score']:.0f}/100")
+            
+            # Show recommendations
+            if quality_analysis['recommendations']:
+                st.write("🚀 **Recommendations**:")
+                for rec in quality_analysis['recommendations']:
+                    st.write(f"   - {rec}")
+        
+    except Exception as e:
+        st.error(f"Chunking failed: {e}")
+        # Fallback to simple splitter
+        st.write("🔄 Using fallback chunking strategy...")
+        fallback_splitter = CharacterTextSplitter(
+            chunk_size=600,
+            chunk_overlap=150,
+            separator="\n",
+        )
+        texts = fallback_splitter.split_documents(documents)
     text_contents = [doc.page_content for doc in texts]
 
     # 🚀 Hybrid Retrieval Setup

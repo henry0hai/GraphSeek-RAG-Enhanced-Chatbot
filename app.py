@@ -3,6 +3,7 @@ import requests
 import json
 from utils.retriever_pipeline import retrieve_documents
 from utils.doc_handler import process_documents
+from utils.enhanced_processing import QueryProcessor, ResultPostProcessor
 from sentence_transformers import CrossEncoder
 import torch
 import os
@@ -24,6 +25,10 @@ EMBEDDINGS_MODEL = "nomic-embed-text:latest"
 CROSS_ENCODER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# Initialize enhanced processors
+query_processor = QueryProcessor()
+result_processor = ResultPostProcessor()
 
 reranker = None  # 🚀 Initialize Cross-Encoder (Reranker) at the global level
 try:
@@ -88,8 +93,38 @@ with st.sidebar:  # 📁 Sidebar
         "Enable Neural Reranking", value=True
     )
     st.session_state.enable_graph_rag = st.checkbox("Enable GraphRAG", value=True)
-    st.session_state.temperature = st.slider("Temperature", 0.0, 1.0, 0.3, 0.05)
-    st.session_state.max_contexts = st.slider("Max Contexts", 1, 20, 10)
+    st.session_state.temperature = st.slider("Temperature", 0.0, 1.0, 0.25, 0.05)
+    st.session_state.max_contexts = st.slider("Max Contexts", 1, 20, 7)
+
+    # Smart context adjustment info
+    st.info(
+        "💡 **Smart Context Adjustment**: The system automatically increases contexts for list/count queries"
+    )
+
+    # Chunking best practices info
+    with st.expander("📚 Text Chunking Best Practices"):
+        st.markdown(
+            """
+        ### 🎯 **Chunking Strategy Guide**
+        
+        **Balanced (Default)**: 600 chars, good for most queries
+        - ✅ General Q&A, explanations, mixed content
+        
+        **Detailed**: 400 chars, precise retrieval
+        - ✅ Fact extraction, specific details, technical specs
+        
+        **Contextual**: 800 chars, preserves context
+        - ✅ Summaries, complex reasoning, narrative content
+        
+        **Count Optimized**: 300 chars, item-level precision
+        - ✅ Lists, counts, catalogs, structured data
+        
+        ### 📏 **Size Guidelines**
+        - **Small chunks**: Better precision, may lose context
+        - **Large chunks**: Better context, may be unfocused
+        - **Overlap**: 25% recommended for context continuity
+        """
+        )
 
     if st.button("Clear Chat History"):
         st.session_state.messages = []
@@ -129,34 +164,33 @@ if prompt := st.chat_input("Ask about your documents..."):
         response_placeholder = st.empty()
         full_response = ""
 
-        # 🚀 Build context
+        # 🚀 Enhanced Context Building
         context = ""
+        intent = "explanation"  # default intent
+
         if st.session_state.rag_enabled and st.session_state.retrieval_pipeline:
             try:
+                # Detect query intent for better processing
+                intent = query_processor.detect_intent(prompt)
+                st.write(f"🎯 **Query Intent Detected**: {intent.upper()}")
+
+                # Retrieve documents using enhanced pipeline
                 docs = retrieve_documents(prompt, OLLAMA_API_URL, MODEL, chat_history)
-                context = "\n".join(
-                    f"[Source {i+1}]: {doc.page_content}" for i, doc in enumerate(docs)
+
+                # Prepare enhanced context using post-processor
+                context = result_processor.prepare_context_for_llm(docs, prompt, intent)
+
+                st.write(
+                    f"📄 **Context Prepared**: {len(docs)} documents, {len(context)} characters"
                 )
+
             except Exception as e:
                 st.error(f"Retrieval error: {str(e)}")
 
-        # 🚀 Structured Prompt (generic for all question types, with citation and evidence)
-        system_prompt = f"""You are an expert assistant. Use the chat history to maintain context.
-Chat History:
-{chat_history}
-
-Analyze the question and context through these steps:
-1. Carefully read the user's question and determine what type of information is being requested (e.g., list, count, summary, explanation, extraction, etc.).
-2. Extract, enumerate, or summarize the relevant entities, facts, or items from the context below that directly answer the question.
-3. For each answer, provide a brief description or supporting detail if available.
-4. Quote or cite the most relevant source(s) in your answer, using the [Source #] notation from the context below.
-5. If possible, provide direct evidence or quotes from the sources.
-
-Context:
-{context}
-
-Question: {prompt}
-Answer (cite sources as [Source #]):"""
+        # 🚀 Enhanced Prompt Generation based on Intent
+        system_prompt = result_processor.generate_enhanced_prompt(
+            prompt, context, chat_history, intent
+        )
 
         # Stream response
         response = requests.post(
