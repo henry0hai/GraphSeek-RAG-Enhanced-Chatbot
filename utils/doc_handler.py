@@ -125,7 +125,7 @@ def process_documents(uploaded_files, reranker, embedding_model, base_url):
     st.session_state.documents_loaded = True
     st.session_state.processing = False
 
-    # ✅ Debugging: Print Knowledge Graph Nodes & Edges
+    # Debugging: Print Knowledge Graph Nodes & Edges
     if "knowledge_graph" in st.session_state.retrieval_pipeline:
         G = st.session_state.retrieval_pipeline["knowledge_graph"]
         st.write(f"🔗 Total Nodes: {len(G.nodes)}")

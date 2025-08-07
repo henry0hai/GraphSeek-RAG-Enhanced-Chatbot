@@ -88,6 +88,7 @@ pip install -r requirements.txt
 - Pull required models:
   ```bash
   ollama pull deepseek-r1:7b
+  ollama pull gpt-oss:20b # Optional, for better computer hardware
   ollama pull nomic-embed-text
   ```
 
@@ -152,5 +153,13 @@ Share your thoughts on [Reddit](https://www.reddit.com/user/akhilpanja/)!
 
 **Enjoy building knowledge graphs, maintaining conversation memory, and harnessing powerful local LLM inference—all from your own machine.**
 
-
+---
 > **Note:** Inherit from on the original [DeepSeek-RAG-Chatbot](https://github.com/SaiAkhil066/DeepSeek-RAG-Chatbot.git)
+
+---
+
+## ** Future Enhancements**
+
+- **Contextual Definitions:** Provide definitions for context keywords, if not found in the document, then process like a normal query, without using related context from the document.
+- **GraphRAG Enhancements:** Improve graph chunking and retrieval logic.
+- **Dynamic Context Handling:** Enhance automatic context adjustment based on query intent more intelligently.
