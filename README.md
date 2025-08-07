@@ -63,6 +63,25 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+or I recomment using Conda:
+
+
+```bash
+curl -LO https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+exec zsh
+```
+
+Create a New Conda Environment (with compatible Python)
+
+```bash
+conda create -n graphseek-faiss python=3.11
+conda activate graphseek-faiss
+conda install -c pytorch faiss-gpu
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
 ### **2 Download & Set Up Ollama**
 
 - Download Ollama: [https://ollama.com/](https://ollama.com/)
