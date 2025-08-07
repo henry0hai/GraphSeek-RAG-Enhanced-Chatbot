@@ -52,6 +52,8 @@ utils/
 
 ### **1 Python/venv Installation**
 
+> **Using Python Version >= 3.11 is recommended.**
+
 ```bash
 git clone git@github.com:henry0hai/GraphSeek-RAG-Enhanced-Chatbot.git
 cd GraphSeek-RAG-Enhanced-Chatbot
@@ -63,7 +65,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-or I recomment using Conda:
+or I recommend using Conda:
 
 
 ```bash
@@ -80,6 +82,13 @@ conda activate graphseek-faiss
 conda install -c pytorch faiss-gpu
 pip install --upgrade pip
 pip install -r requirements.txt
+```
+
+For MacOS users, you can also use Homebrew to install Python and set up a virtual environment:
+
+```bash
+pip install faiss-cpu
+pip install mlx mlx-lm mlx-metal
 ```
 
 ### **2 Download & Set Up Ollama**
